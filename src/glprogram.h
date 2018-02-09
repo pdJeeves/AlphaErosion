@@ -27,6 +27,7 @@ protected:
 	void create();
     void compile(ViewWidget * gl, const char * text, GLuint);
     void load(ViewWidget * gl, const char * filename, GLuint);
+    bool tryLoad(ViewWidget * gl, const char * filename, GLuint type);
     void attribute(ViewWidget * gl, GLuint index, const char * name);
     void link(ViewWidget * gl);
     void uniform(ViewWidget * gl, GLint & uniform, const char * name);

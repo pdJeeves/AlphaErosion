@@ -96,6 +96,27 @@ void glProgram::compile(ViewWidget * gl, const char * text, GLuint type)
 }
 
 
+bool glProgram::tryLoad(ViewWidget * gl, const char * filename, GLuint type)
+{
+    int i = getShaderIndex(type);
+
+    if(shaders[i])
+    {
+        throw std::logic_error("tried to add shader type which already exists");
+    }
+
+    shaders[i] = loadShader(gl, filename, type);
+
+    if(shaders[i] == 0)
+    {
+        return false;
+    }
+
+    gl->glAttachShader(m_program, shaders[i]); GL_ASSERT
+    return true;
+}
+
+
 void glProgram::load(ViewWidget * gl, const char * filename, GLuint type)
 {
 	int i = getShaderIndex(type);

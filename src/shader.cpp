@@ -11,8 +11,12 @@ static const char * kFrag();
 
 void Shader::construct(ViewWidget * gl)
 {
-	compile(gl, kVert(), GL_VERTEX_SHADER);
-	compile(gl, kFrag(), GL_FRAGMENT_SHADER);
+    if(!tryLoad(gl, "shader.vert", GL_VERTEX_SHADER))
+        compile(gl, kVert(), GL_VERTEX_SHADER);
+
+    if(!tryLoad(gl, "shader.frag", GL_FRAGMENT_SHADER))
+        compile(gl, kFrag(), GL_FRAGMENT_SHADER);
+
 	attribute(gl, 0, "v_vert");
 	attribute(gl, 1, "v_uv");
 	link(gl);

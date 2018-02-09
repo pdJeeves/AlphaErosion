@@ -25,8 +25,8 @@ ViewWidget::~ViewWidget()
 	if(m_texture[1])
 		glDeleteTextures(1, &m_texture[0]);
 
-	ReleaseGL();
-	g_shader.Release();
+	ReleaseGL(this);
+	g_shader.Release(this);
 }
 
 void ViewWidget::setTexture(int id, QImage & image)
@@ -82,17 +82,7 @@ void ViewWidget::clearTexture(int id)
 
 void 	ViewWidget::initializeGL()
 {
-static bool g_wasGlewInitialized = false;
-	if(!g_wasGlewInitialized)
-	{
-		g_wasGlewInitialized = true;
-		GLenum glewError = glewInit();
-		if(glewError != GLEW_OK)
-		{
-			QMessageBox::information(this, QGuiApplication::applicationDisplayName(), (const char*) glewGetErrorString(glewError));
-			w->close();
-		}
-	}
+	QOpenGLFunctions_3_2_Core::initializeOpenGLFunctions();
 }
 
 void ViewWidget::paintGL()
@@ -101,8 +91,8 @@ void ViewWidget::paintGL()
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	g_shader.bindShader();
-	bindVAO();
+	g_shader.bindShader(this);
+	bindVAO(this);
 
 	glDisable(GL_DEPTH_TEST);
 	glBlendEquation(GL_FUNC_ADD);
@@ -111,7 +101,7 @@ void ViewWidget::paintGL()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture[0]);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, m_texture[1]? m_texture[1] : getWhiteTexture());
+	glBindTexture(GL_TEXTURE_2D, m_texture[1]? m_texture[1] : getWhiteTexture(this));
 
 	glUniform1i(g_shader.u_erosion, 0);
 	glUniform1i(g_shader.u_gradient, 1);

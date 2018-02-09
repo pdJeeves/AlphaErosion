@@ -16,8 +16,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
-
-LIBS += -lGL -lGLEW -lGLU -ldrm
+INCLUDEPATH += src
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,7 +28,6 @@ SOURCES += \
         src/main.cpp \
        src/mainwindow.cpp \
     src/viewwidget.cpp \
-        src/opengl_errors.cpp \
     src/glprogram.cpp \
     src/glglobals.cpp \
     src/shader.cpp
@@ -38,7 +36,6 @@ SOURCES += \
 HEADERS += \
         src/mainwindow.h \
     src/viewwidget.h \
-    src/opengl.h \
 	src/glprogram.h \
     src/glglobals.h \
     src/shader.h

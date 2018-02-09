@@ -1,11 +1,11 @@
 #ifndef VIEWWIDGET_H
 #define VIEWWIDGET_H
-#include "opengl.h"
+#include <QOpenGLFunctions_3_2_Core>
 #include <QOpenGLWidget>
 
 class MainWindow;
 
-class ViewWidget : public QOpenGLWidget
+class ViewWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_2_Core
 {
 friend class MainWindow;
 	MainWindow * w;

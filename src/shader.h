@@ -17,7 +17,7 @@ public:
 	GLint u_transitionDuration;
 	GLint u_time;
 
-	void construct();
+	void construct(QOpenGLFunctions_3_2_Core * gl);
 };
 
 extern Shader g_shader;

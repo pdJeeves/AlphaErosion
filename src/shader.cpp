@@ -8,22 +8,22 @@ Shader g_shader;
 static const char * kVert();
 static const char * kFrag();
 
-void Shader::construct()
+void Shader::construct(QOpenGLFunctions_3_2_Core * gl)
 {
-	compile(kVert(), GL_VERTEX_SHADER);
-	compile(kFrag(), GL_FRAGMENT_SHADER);
-	attribute(0, "v_vert");
-	attribute(1, "v_uv");
-	link();
-	uniform(u_erosion,            "u_erosion");
-	uniform(u_gradient,           "u_gradient");
-	uniform(u_imageSize,          "u_imageSize");
-	uniform(u_windowSize,         "u_windowSize");
-	uniform(u_fadeInDuration,     "u_fadeInDuration");
-	uniform(u_fadeOutStart,       "u_fadeOutStart");
-	uniform(u_fadeOutDuration,    "u_fadeOutDuration");
-	uniform(u_transitionDuration, "u_transitionDuration");
-	uniform(u_time,           "u_time");
+	compile(gl, kVert(), GL_VERTEX_SHADER);
+	compile(gl, kFrag(), GL_FRAGMENT_SHADER);
+	attribute(gl, 0, "v_vert");
+	attribute(gl, 1, "v_uv");
+	link(gl);
+	uniform(gl, u_erosion,            "u_erosion");
+	uniform(gl, u_gradient,           "u_gradient");
+	uniform(gl, u_imageSize,          "u_imageSize");
+	uniform(gl, u_windowSize,         "u_windowSize");
+	uniform(gl, u_fadeInDuration,     "u_fadeInDuration");
+	uniform(gl, u_fadeOutStart,       "u_fadeOutStart");
+	uniform(gl, u_fadeOutDuration,    "u_fadeOutDuration");
+	uniform(gl, u_transitionDuration, "u_transitionDuration");
+	uniform(gl, u_time,           "u_time");
 }
 
 const char * kVert()
@@ -80,15 +80,15 @@ const char * kFrag()
     	float fadeOutFactor = clamp((1-f_life.g) - (1 - texEffect.g), 0, 1);
 
     	vec2 rampUV = vec2(f_life.r * 0.5f, fadeInFactor);
-        vec4 texIN = texture(u_gradient, f_uv);
+        vec4 texIN = texture(u_gradient, rampUV);
 
         rampUV = vec2((0.5f + f_life.g * 0.5f), (1-fadeOutFactor));
-        vec4 texOUT= texture(u_gradient, f_uv);
+        vec4 texOUT= texture(u_gradient, rampUV);
 
         vec4 texBLEND = mix(texIN, texOUT, vec4(f_life.b));
 
-		fadeInFactor = clamp(fadeInFactor *15, 0, 1);
-		fadeOutFactor = clamp(fadeOutFactor *15, 0, 1);
+		fadeInFactor = clamp(fadeInFactor *15 * (1 - texEffect.b), 0, 1);
+		fadeOutFactor = clamp(fadeOutFactor *15* (1 - texEffect.b), 0, 1);
 		fragColor = texBLEND * fadeInFactor*fadeOutFactor;
 	});
 }

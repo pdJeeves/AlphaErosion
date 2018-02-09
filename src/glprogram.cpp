@@ -1,5 +1,4 @@
 #include "glprogram.h"
-#include "opengl.h"
 #include <cstdio>
 #include <exception>
 #include <vector>
@@ -15,7 +14,6 @@ glProgram::glProgram() :
 
 glProgram::~glProgram()
 {
-	destruct();
 }
 
 
@@ -25,44 +23,44 @@ void glProgram::AddRef()
 	++m_refCount;
 }
 
-void glProgram::Release()
+void glProgram::Release(QOpenGLFunctions_3_2_Core* gl)
 {
 	lock_guard_t lock(m_mutex);
 	if( --m_refCount == 0 )
 	{
-		destruct();
+		destruct(gl);
 	}
 
 	assert(m_refCount >= 0);
 }
 
-void glProgram::destruct()
+void glProgram::destruct(QOpenGLFunctions_3_2_Core * gl)
 {
 	if(m_program)
 	{
 		for(size_t i = 0; i < shaders.size(); ++i)
 		{
-			glDeleteShader(shaders[i]);
+			gl->glDeleteShader(shaders[i]);
 			shaders[i] = 0L;
 		}
 
-		glDeleteProgram(m_program);
+		gl->glDeleteProgram(m_program);
 		m_program = 0L;
 	}
 }
 
-void glProgram::printLog()
+void glProgram::printLog(QOpenGLFunctions_3_2_Core * gl)
 {
 	GLint length;
-	glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
+	gl->glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
 
 	std::vector<char> log(length, 0);
-	glGetProgramInfoLog(m_program, length, &length, log.data());
+	gl->glGetProgramInfoLog(m_program, length, &length, log.data());
 	fprintf(stderr, "%s", log.data());
 	fflush(stderr);
 }
 
-int glProgram::getShaderIndex(uint32_t type)
+int glProgram::getShaderIndex(GLuint type)
 {
 	switch(type)
 	{
@@ -76,7 +74,7 @@ int glProgram::getShaderIndex(uint32_t type)
 	}
 }
 
-void glProgram::compile(const char * text, GLuint type)
+void glProgram::compile(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint type)
 {
 	int i = getShaderIndex(type);
 
@@ -85,18 +83,18 @@ void glProgram::compile(const char * text, GLuint type)
 		throw std::logic_error("tried to add shader type which already exists");
 	}
 
-	shaders[i] = compileShader(text, type);
+	shaders[i] = compileShader(gl, text, type);
 
 	if(shaders[i] == 0)
 	{
 		throw std::logic_error("failed to add shader");
 	}
 
-	glAttachShader(m_program, shaders[i]);
+	gl->glAttachShader(m_program, shaders[i]);
 }
 
 
-void glProgram::load(const char * filename, GLuint type)
+void glProgram::load(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint type)
 {
 	int i = getShaderIndex(type);
 
@@ -105,56 +103,56 @@ void glProgram::load(const char * filename, GLuint type)
 		throw std::logic_error("tried to add shader type which already exists");
 	}
 
-	shaders[i] = loadShader(filename, type);
+	shaders[i] = loadShader(gl, filename, type);
 
 	if(shaders[i] == 0)
 	{
 		throw std::logic_error("failed to add shader");
 	}
 
-	glAttachShader(m_program, shaders[i]);
+	gl->glAttachShader(m_program, shaders[i]);
 }
 
-void glProgram::link()
+void glProgram::link(QOpenGLFunctions_3_2_Core * gl)
 {
-	glLinkProgram(m_program);
+	gl->glLinkProgram(m_program);
 
 	GLint status;
-	glGetProgramiv(m_program, GL_LINK_STATUS, &status);
+	gl->glGetProgramiv(m_program, GL_LINK_STATUS, &status);
 
 	if(status == GL_FALSE)
 	{
-		printLog();
+		printLog(gl);
 		throw std::runtime_error("link failed");
 	}
 }
 
-bool glProgram::validate()
+bool glProgram::validate(QOpenGLFunctions_3_2_Core * gl)
 {
-	glValidateProgram(m_program);
+	gl->glValidateProgram(m_program);
 
 	GLint status;
-	glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status);
+	gl->glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status);
 
 	if(status == GL_FALSE)
 	{
-		printLog();
+		printLog(gl);
 	}
 
 	return status == GL_TRUE;
 }
 
-void glProgram::attribute(GLuint index, const char * name)
+void glProgram::attribute(QOpenGLFunctions_3_2_Core * gl, GLuint index, const char * name)
 {
-	glBindAttribLocation(m_program, index, name);
+	gl->glBindAttribLocation(m_program, index, name);
 }
 
-void glProgram::uniform(GLint & index, const char * name)
+void glProgram::uniform(QOpenGLFunctions_3_2_Core * gl, GLint & index, const char * name)
 {
-	index = glGetUniformLocation(m_program, name);
+	index = gl->glGetUniformLocation(m_program, name);
 }
 
-bool glProgram::bindShader()
+bool glProgram::bindShader(QOpenGLFunctions_3_2_Core * gl)
 {
 static glProgram * current_program = 0L;
 	if(current_program == this)
@@ -163,21 +161,21 @@ static glProgram * current_program = 0L;
 
 	if(!m_program)
 	{
-		m_program = glCreateProgram();
-		construct();
+		m_program = gl->glCreateProgram();
+		construct(gl);
 	}
 
-	glUseProgram(m_program);
+	gl->glUseProgram(m_program);
 	return true;
 }
 
-GLuint glProgram::compileShader(const char * text, GLuint shader_type)
+GLuint glProgram::compileShader(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint shader_type)
 {
 	GLuint shader = 0;
 	GLint length = 0;
 	std::vector<char> error;
 
-	shader = glCreateShader(shader_type);
+	shader = gl->glCreateShader(shader_type);
 
 	if(!shader)
 	{
@@ -185,11 +183,11 @@ GLuint glProgram::compileShader(const char * text, GLuint shader_type)
 		return 0;
 	}
 
-	glShaderSource(shader, 1, &text, 0L);
-	glCompileShader(shader);
+	gl->glShaderSource(shader, 1, &text, 0L);
+	gl->glCompileShader(shader);
 
 	GLint success = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
 	if(success != GL_FALSE)
 	{
@@ -197,17 +195,17 @@ GLuint glProgram::compileShader(const char * text, GLuint shader_type)
 	}
 
 	length = 0;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+	gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 
 	error.resize(length, 0);
-	glGetShaderInfoLog(shader, length, &length, error.data());
+	gl->glGetShaderInfoLog(shader, length, &length, error.data());
 
 	fprintf(stderr, "%s", error.data());
-	glDeleteShader(shader);
+	gl->glDeleteShader(shader);
 	return 0;
 }
 
-GLuint glProgram::loadShader(const char * filename, GLuint shader_type)
+GLuint glProgram::loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint shader_type)
 {
 	GLuint shader;
 	GLint length;
@@ -222,7 +220,7 @@ GLuint glProgram::loadShader(const char * filename, GLuint shader_type)
 		return 0;
 	}
 
-	shader = glCreateShader(shader_type);
+	shader = gl->glCreateShader(shader_type);
 
 	if(!shader)
 	{
@@ -240,11 +238,11 @@ GLuint glProgram::loadShader(const char * filename, GLuint shader_type)
 	fclose(file);
 
 	text_ptr = text.data();
-	glShaderSource(shader, 1, &text_ptr, &length);
-	glCompileShader(shader);
+	gl->glShaderSource(shader, 1, &text_ptr, &length);
+	gl->glCompileShader(shader);
 
 	GLint success = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
 	if(success != GL_FALSE)
 	{
@@ -252,11 +250,11 @@ GLuint glProgram::loadShader(const char * filename, GLuint shader_type)
 	}
 
 	length = 0;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+	gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 	text.resize(length, 0);
-	glGetShaderInfoLog(shader, length, &length, text.data());
+	gl->glGetShaderInfoLog(shader, length, &length, text.data());
 
 	fprintf(stderr, "%s", text.data());
-	glDeleteShader(shader);
+	gl->glDeleteShader(shader);
 	return 0;
 }

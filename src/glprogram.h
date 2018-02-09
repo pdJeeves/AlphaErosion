@@ -1,6 +1,6 @@
 #ifndef GLPROGRAM_H
 #define GLPROGRAM_H
-#include "opengl.h"
+#include <QOpenGLFunctions_3_2_Core>
 #include <memory>
 #include <array>
 #include <cstdint>
@@ -19,18 +19,18 @@ private:
 
 	std::array<GLuint,6>  shaders;
 
-	static GLuint compileShader(const char * filename, GLuint);
-	static GLuint loadShader(const char * filename, GLuint);
+	static GLuint compileShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
+	static GLuint loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
 	static int getShaderIndex(GLuint);
-	void printLog();
+	void printLog(QOpenGLFunctions_3_2_Core * gl);
 
 protected:
 	void create();
-	void compile(const char * text, GLuint);
-	void load(const char * filename, GLuint);
-	void attribute(GLuint index, const char * name);
-	void link();
-	void uniform(GLint & uniform, const char * name);
+	void compile(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint);
+	void load(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
+	void attribute(QOpenGLFunctions_3_2_Core * gl, GLuint index, const char * name);
+	void link(QOpenGLFunctions_3_2_Core * gl);
+	void uniform(QOpenGLFunctions_3_2_Core * gl, GLint & uniform, const char * name);
 
 public:
 	bool isGood() const { return m_program; }
@@ -43,15 +43,15 @@ public:
 	glProgram & operator=(const glProgram & it) = delete;
 	glProgram & operator=(glProgram &&) = delete;
 
-	virtual void construct() = 0;
-	void destruct();
+	virtual void construct(QOpenGLFunctions_3_2_Core * gl) = 0;
+	void destruct(QOpenGLFunctions_3_2_Core * gl);
 
 	void AddRef();
-	void Release();
+	void Release(QOpenGLFunctions_3_2_Core*);
 
-	bool validate();
+	bool validate(QOpenGLFunctions_3_2_Core * gl);
 
-	bool bindShader();
+	bool bindShader(QOpenGLFunctions_3_2_Core * gl);
 };
 
 #endif // GLSHADER_H

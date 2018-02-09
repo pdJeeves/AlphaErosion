@@ -94,6 +94,6 @@ const char * kFrag()
 
 		fadeInFactor = clamp(fadeInFactor *15 * (1 - texEffect.b), 0, 1);
 		fadeOutFactor = clamp(fadeOutFactor *15* (1 - texEffect.b), 0, 1);
-		fragColor = texBLEND * fadeInFactor*fadeOutFactor;
+        fragColor = vec4(texBLEND.rgb, texBLEND.a * fadeInFactor*fadeOutFactor);
 	});
 }

@@ -91,7 +91,7 @@ void ViewWidget::clearTexture(int id)
 void 	ViewWidget::initializeGL()
 {
     QOpenGLFunctions_3_2_Core::initializeOpenGLFunctions(); GL_ASSERT
-    glClearColor(0, 0, 0, 1); GL_ASSERT
+    glClearColor(1, 0, 0, 1); GL_ASSERT
     glDisable(GL_DEPTH_TEST); GL_ASSERT
     glEnable(GL_BLEND); GL_ASSERT
     glBlendEquation(GL_FUNC_ADD); GL_ASSERT
@@ -129,7 +129,7 @@ void ViewWidget::paintGL()
 void 	ViewWidget::resizeGL(int w, int h)
 {
 	QOpenGLWidget::resizeGL(w, h);
-    glViewport(0, 0, width(), height());
+    glViewport(0, 0, w, h);
 }
 
 

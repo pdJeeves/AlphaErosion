@@ -1,3 +1,4 @@
+#include "viewwidget.h"
 #include "shader.h"
 #include <cstddef>
 
@@ -8,7 +9,7 @@ Shader g_shader;
 static const char * kVert();
 static const char * kFrag();
 
-void Shader::construct(QOpenGLFunctions_3_2_Core * gl)
+void Shader::construct(ViewWidget * gl)
 {
 	compile(gl, kVert(), GL_VERTEX_SHADER);
 	compile(gl, kFrag(), GL_FRAGMENT_SHADER);

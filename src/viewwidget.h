@@ -5,7 +5,7 @@
 
 class MainWindow;
 
-class ViewWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_2_Core
+class ViewWidget : public QOpenGLWidget, public QOpenGLFunctions_3_2_Core
 {
 friend class MainWindow;
 	MainWindow * w;
@@ -24,6 +24,10 @@ public:
 	void 	initializeGL();
 	void 	paintGL();
 	void 	resizeGL(int w, int h);
+
+    void    displayOpenGlError(const char * file, const char * function, int line);
 };
+
+#define glAssert() displayOpenGlError(__FILE__, __FUNCTION__, __LINE__);
 
 #endif // VIEWWIDGET_H

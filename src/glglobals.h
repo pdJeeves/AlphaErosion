@@ -1,11 +1,11 @@
 #ifndef GLGLOBALS_H
 #define GLGLOBALS_H
 
-class QOpenGLFunctions_3_2_Core;
+class ViewWidget;
 
 void AddRefGL();
-void ReleaseGL(QOpenGLFunctions_3_2_Core*);
-void bindVAO(QOpenGLFunctions_3_2_Core*);
-uint32_t getWhiteTexture(QOpenGLFunctions_3_2_Core*);
+void ReleaseGL(ViewWidget*);
+void bindVAO(ViewWidget*);
+uint32_t getWhiteTexture(ViewWidget*);
 
 #endif // GLGLOBALS_H

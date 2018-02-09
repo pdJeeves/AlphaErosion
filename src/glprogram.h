@@ -1,12 +1,11 @@
 #ifndef GLPROGRAM_H
 #define GLPROGRAM_H
-#include <QOpenGLFunctions_3_2_Core>
+#include "viewwidget.h"
 #include <memory>
 #include <array>
 #include <cstdint>
 #include <vector>
 #include <mutex>
-
 
 class glProgram
 {
@@ -19,18 +18,18 @@ private:
 
 	std::array<GLuint,6>  shaders;
 
-	static GLuint compileShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
-	static GLuint loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
+    static GLuint compileShader(ViewWidget * gl, const char * filename, GLuint);
+    static GLuint loadShader(ViewWidget * gl, const char * filename, GLuint);
 	static int getShaderIndex(GLuint);
-	void printLog(QOpenGLFunctions_3_2_Core * gl);
+    void printLog(ViewWidget * gl);
 
 protected:
 	void create();
-	void compile(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint);
-	void load(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint);
-	void attribute(QOpenGLFunctions_3_2_Core * gl, GLuint index, const char * name);
-	void link(QOpenGLFunctions_3_2_Core * gl);
-	void uniform(QOpenGLFunctions_3_2_Core * gl, GLint & uniform, const char * name);
+    void compile(ViewWidget * gl, const char * text, GLuint);
+    void load(ViewWidget * gl, const char * filename, GLuint);
+    void attribute(ViewWidget * gl, GLuint index, const char * name);
+    void link(ViewWidget * gl);
+    void uniform(ViewWidget * gl, GLint & uniform, const char * name);
 
 public:
 	bool isGood() const { return m_program; }
@@ -43,15 +42,15 @@ public:
 	glProgram & operator=(const glProgram & it) = delete;
 	glProgram & operator=(glProgram &&) = delete;
 
-	virtual void construct(QOpenGLFunctions_3_2_Core * gl) = 0;
-	void destruct(QOpenGLFunctions_3_2_Core * gl);
+    virtual void construct(ViewWidget * gl) = 0;
+    void destruct(ViewWidget * gl);
 
 	void AddRef();
-	void Release(QOpenGLFunctions_3_2_Core*);
+    void Release(ViewWidget*);
 
-	bool validate(QOpenGLFunctions_3_2_Core * gl);
+    bool validate(ViewWidget * gl);
 
-	bool bindShader(QOpenGLFunctions_3_2_Core * gl);
+    bool bindShader(ViewWidget * gl);
 };
 
 #endif // GLSHADER_H

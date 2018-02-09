@@ -2,7 +2,7 @@
 #define SHADER_H
 #include "glprogram.h"
 
-class MainWindow;
+class ViewWidget;
 
 class Shader : public glProgram
 {
@@ -17,7 +17,7 @@ public:
 	GLint u_transitionDuration;
 	GLint u_time;
 
-	void construct(QOpenGLFunctions_3_2_Core * gl);
+    void construct(ViewWidget *gl);
 };
 
 extern Shader g_shader;

@@ -6,6 +6,8 @@
 #include <QGuiApplication>
 #include <QImage>
 
+#define GL_ASSERT glAssert();
+
 ViewWidget::ViewWidget(QWidget * m_parent) :
 QOpenGLWidget(m_parent),
 	w(0L),
@@ -21,9 +23,13 @@ QOpenGLWidget(m_parent),
 ViewWidget::~ViewWidget()
 {
 	if(m_texture[0])
-		glDeleteTextures(1, &m_texture[0]);
+    {
+        glDeleteTextures(1, &m_texture[0]); GL_ASSERT
+    }
 	if(m_texture[1])
-		glDeleteTextures(1, &m_texture[0]);
+    {
+        glDeleteTextures(1, &m_texture[0]); GL_ASSERT
+    }
 
 	ReleaseGL(this);
 	g_shader.Release(this);
@@ -37,19 +43,19 @@ void ViewWidget::setTexture(int id, QImage & image)
 		m_height = image.height();
 	}
 
-	glEnable(GL_TEXTURE_2D);
-
 	if(m_texture[id] != 0L)
-		glBindTexture(GL_TEXTURE_2D, m_texture[id]);
+    {
+        glBindTexture(GL_TEXTURE_2D, m_texture[id]); GL_ASSERT
+    }
 	else
 	{
-		glGenTextures(1, &m_texture[id]);
-		glBindTexture(GL_TEXTURE_2D, m_texture[id]);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glGenTextures(1, &m_texture[id]); GL_ASSERT
+        glBindTexture(GL_TEXTURE_2D, m_texture[id]); GL_ASSERT
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); GL_ASSERT
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); GL_ASSERT
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); GL_ASSERT
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); GL_ASSERT
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); GL_ASSERT
 	}
 
 	std::vector<GLubyte> tex_data;
@@ -69,8 +75,7 @@ void ViewWidget::setTexture(int id, QImage & image)
 		}
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, &tex_data[0]);
-	glDisable(GL_TEXTURE_2D);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, &tex_data[0]); GL_ASSERT
 	repaint();
 }
 
@@ -82,40 +87,40 @@ void ViewWidget::clearTexture(int id)
 
 void 	ViewWidget::initializeGL()
 {
-	QOpenGLFunctions_3_2_Core::initializeOpenGLFunctions();
+    QOpenGLFunctions_3_2_Core::initializeOpenGLFunctions(); GL_ASSERT
 }
 
 void ViewWidget::paintGL()
 {
-	glViewport(0, 0, width(), height());
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width(), height()); GL_ASSERT
+    glClearColor(0, 0, 0, 1); GL_ASSERT
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_ASSERT
 
 	g_shader.bindShader(this);
 	bindVAO(this);
 
-	glDisable(GL_DEPTH_TEST);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST); GL_ASSERT
+    glBlendEquation(GL_FUNC_ADD); GL_ASSERT
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); GL_ASSERT
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_texture[0]);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, m_texture[1]? m_texture[1] : getWhiteTexture(this));
+    glActiveTexture(GL_TEXTURE0); GL_ASSERT
+    glBindTexture(GL_TEXTURE_2D, m_texture[0]); GL_ASSERT
+    glActiveTexture(GL_TEXTURE1); GL_ASSERT
+    glBindTexture(GL_TEXTURE_2D, m_texture[1]? m_texture[1] : getWhiteTexture(this)); GL_ASSERT
 
-	glUniform1i(g_shader.u_erosion, 0);
-	glUniform1i(g_shader.u_gradient, 1);
-	glUniform2f(g_shader.u_imageSize, m_width, m_height);
-	glUniform2f(g_shader.u_windowSize, width(), height());
-	glUniform1f(g_shader.u_fadeInDuration,     w->fadeInDuration());
-	glUniform1f(g_shader.u_fadeOutStart,       w->fadeOutStart());
-	glUniform1f(g_shader.u_fadeOutDuration,    w->fadeOutDuration());
-	glUniform1f(g_shader.u_transitionDuration, w->transitionDuration());
-	glUniform1f(g_shader.u_time,               w->progress() * w->durationMs() / 1000.0);
+    glUniform1i(g_shader.u_erosion, 0); GL_ASSERT
+    glUniform1i(g_shader.u_gradient, 1); GL_ASSERT
+    glUniform2f(g_shader.u_imageSize, m_width, m_height); GL_ASSERT
+    glUniform2f(g_shader.u_windowSize, width(), height()); GL_ASSERT
+    glUniform1f(g_shader.u_fadeInDuration,     w->fadeInDuration()); GL_ASSERT
+    glUniform1f(g_shader.u_fadeOutStart,       w->fadeOutStart()); GL_ASSERT
+    glUniform1f(g_shader.u_fadeOutDuration,    w->fadeOutDuration()); GL_ASSERT
+    glUniform1f(g_shader.u_transitionDuration, w->transitionDuration()); GL_ASSERT
+    glUniform1f(g_shader.u_time,               w->progress() * w->durationMs() / 1000.0); GL_ASSERT
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6); GL_ASSERT
 
-	glFlush();
+    glFlush(); GL_ASSERT
 }
 
 void 	ViewWidget::resizeGL(int w, int h)
@@ -123,5 +128,23 @@ void 	ViewWidget::resizeGL(int w, int h)
 	QOpenGLWidget::resizeGL(w, h);
 }
 
+#include <GL/glu.h>
+
+void ViewWidget::displayOpenGlError(const char * file, const char * function, int line)
+{
+    GLenum error = glGetError();
+
+    if(error == GL_NO_ERROR) return;
+
+    do
+    {
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+                                 tr("FILE: %1\nFUNC: %2\nLINE: %3\nERROR: %4")
+                                 .arg(file).arg(function).arg(line).arg((const char *) gluErrorString(error)));
+
+    } while((error = glGetError()) != GL_NO_ERROR);
+
+    w->close();
+}
 
 

@@ -61,7 +61,7 @@ void MainWindow::loadTexture(int id, const QString & title)
 void MainWindow::reloadTexture(int id)
 {
 	QImage image;
-	loadFile(image, m_texturePath[id].path());
+    loadFile(image, m_texturePath[id].filePath());
 
 	if(!image.isNull())
 		ui->openGLWidget->setTexture(id, image);

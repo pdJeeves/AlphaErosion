@@ -5,6 +5,8 @@
 #include <cassert>
 
 
+#define GL_ASSERT gl->glAssert();
+
 glProgram::glProgram() :
 	m_refCount(0L),
 	m_program(0L)
@@ -23,7 +25,7 @@ void glProgram::AddRef()
 	++m_refCount;
 }
 
-void glProgram::Release(QOpenGLFunctions_3_2_Core* gl)
+void glProgram::Release(ViewWidget* gl)
 {
 	lock_guard_t lock(m_mutex);
 	if( --m_refCount == 0 )
@@ -34,28 +36,28 @@ void glProgram::Release(QOpenGLFunctions_3_2_Core* gl)
 	assert(m_refCount >= 0);
 }
 
-void glProgram::destruct(QOpenGLFunctions_3_2_Core * gl)
+void glProgram::destruct(ViewWidget * gl)
 {
 	if(m_program)
 	{
 		for(size_t i = 0; i < shaders.size(); ++i)
 		{
-			gl->glDeleteShader(shaders[i]);
+            gl->glDeleteShader(shaders[i]); GL_ASSERT
 			shaders[i] = 0L;
 		}
 
-		gl->glDeleteProgram(m_program);
+        gl->glDeleteProgram(m_program); GL_ASSERT
 		m_program = 0L;
 	}
 }
 
-void glProgram::printLog(QOpenGLFunctions_3_2_Core * gl)
+void glProgram::printLog(ViewWidget * gl)
 {
 	GLint length;
-	gl->glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length);
+    gl->glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &length); GL_ASSERT
 
 	std::vector<char> log(length, 0);
-	gl->glGetProgramInfoLog(m_program, length, &length, log.data());
+    gl->glGetProgramInfoLog(m_program, length, &length, log.data()); GL_ASSERT
 	fprintf(stderr, "%s", log.data());
 	fflush(stderr);
 }
@@ -74,7 +76,7 @@ int glProgram::getShaderIndex(GLuint type)
 	}
 }
 
-void glProgram::compile(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint type)
+void glProgram::compile(ViewWidget * gl, const char * text, GLuint type)
 {
 	int i = getShaderIndex(type);
 
@@ -90,11 +92,11 @@ void glProgram::compile(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuin
 		throw std::logic_error("failed to add shader");
 	}
 
-	gl->glAttachShader(m_program, shaders[i]);
+    gl->glAttachShader(m_program, shaders[i]); GL_ASSERT
 }
 
 
-void glProgram::load(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint type)
+void glProgram::load(ViewWidget * gl, const char * filename, GLuint type)
 {
 	int i = getShaderIndex(type);
 
@@ -110,15 +112,15 @@ void glProgram::load(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLui
 		throw std::logic_error("failed to add shader");
 	}
 
-	gl->glAttachShader(m_program, shaders[i]);
+    gl->glAttachShader(m_program, shaders[i]); GL_ASSERT
 }
 
-void glProgram::link(QOpenGLFunctions_3_2_Core * gl)
+void glProgram::link(ViewWidget * gl)
 {
-	gl->glLinkProgram(m_program);
+    gl->glLinkProgram(m_program); GL_ASSERT
 
 	GLint status;
-	gl->glGetProgramiv(m_program, GL_LINK_STATUS, &status);
+    gl->glGetProgramiv(m_program, GL_LINK_STATUS, &status); GL_ASSERT
 
 	if(status == GL_FALSE)
 	{
@@ -127,12 +129,12 @@ void glProgram::link(QOpenGLFunctions_3_2_Core * gl)
 	}
 }
 
-bool glProgram::validate(QOpenGLFunctions_3_2_Core * gl)
+bool glProgram::validate(ViewWidget * gl)
 {
-	gl->glValidateProgram(m_program);
+    gl->glValidateProgram(m_program); GL_ASSERT
 
 	GLint status;
-	gl->glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status);
+    gl->glGetProgramiv(m_program, GL_VALIDATE_STATUS, &status); GL_ASSERT
 
 	if(status == GL_FALSE)
 	{
@@ -142,17 +144,17 @@ bool glProgram::validate(QOpenGLFunctions_3_2_Core * gl)
 	return status == GL_TRUE;
 }
 
-void glProgram::attribute(QOpenGLFunctions_3_2_Core * gl, GLuint index, const char * name)
+void glProgram::attribute(ViewWidget * gl, GLuint index, const char * name)
 {
-	gl->glBindAttribLocation(m_program, index, name);
+    gl->glBindAttribLocation(m_program, index, name); GL_ASSERT
 }
 
-void glProgram::uniform(QOpenGLFunctions_3_2_Core * gl, GLint & index, const char * name)
+void glProgram::uniform(ViewWidget * gl, GLint & index, const char * name)
 {
-	index = gl->glGetUniformLocation(m_program, name);
+    index = gl->glGetUniformLocation(m_program, name); GL_ASSERT
 }
 
-bool glProgram::bindShader(QOpenGLFunctions_3_2_Core * gl)
+bool glProgram::bindShader(ViewWidget * gl)
 {
 static glProgram * current_program = 0L;
 	if(current_program == this)
@@ -161,21 +163,21 @@ static glProgram * current_program = 0L;
 
 	if(!m_program)
 	{
-		m_program = gl->glCreateProgram();
+        m_program = gl->glCreateProgram(); GL_ASSERT
 		construct(gl);
 	}
 
-	gl->glUseProgram(m_program);
+    gl->glUseProgram(m_program); GL_ASSERT
 	return true;
 }
 
-GLuint glProgram::compileShader(QOpenGLFunctions_3_2_Core * gl, const char * text, GLuint shader_type)
+GLuint glProgram::compileShader(ViewWidget * gl, const char * text, GLuint shader_type)
 {
 	GLuint shader = 0;
 	GLint length = 0;
 	std::vector<char> error;
 
-	shader = gl->glCreateShader(shader_type);
+    shader = gl->glCreateShader(shader_type); GL_ASSERT
 
 	if(!shader)
 	{
@@ -183,11 +185,11 @@ GLuint glProgram::compileShader(QOpenGLFunctions_3_2_Core * gl, const char * tex
 		return 0;
 	}
 
-	gl->glShaderSource(shader, 1, &text, 0L);
-	gl->glCompileShader(shader);
+    gl->glShaderSource(shader, 1, &text, 0L); GL_ASSERT
+    gl->glCompileShader(shader); GL_ASSERT
 
 	GLint success = 0;
-	gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success); GL_ASSERT
 
 	if(success != GL_FALSE)
 	{
@@ -195,17 +197,17 @@ GLuint glProgram::compileShader(QOpenGLFunctions_3_2_Core * gl, const char * tex
 	}
 
 	length = 0;
-	gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+    gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length); GL_ASSERT
 
 	error.resize(length, 0);
-	gl->glGetShaderInfoLog(shader, length, &length, error.data());
+    gl->glGetShaderInfoLog(shader, length, &length, error.data()); GL_ASSERT
 
 	fprintf(stderr, "%s", error.data());
-	gl->glDeleteShader(shader);
+    gl->glDeleteShader(shader); GL_ASSERT
 	return 0;
 }
 
-GLuint glProgram::loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filename, GLuint shader_type)
+GLuint glProgram::loadShader(ViewWidget * gl, const char * filename, GLuint shader_type)
 {
 	GLuint shader;
 	GLint length;
@@ -220,7 +222,7 @@ GLuint glProgram::loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filena
 		return 0;
 	}
 
-	shader = gl->glCreateShader(shader_type);
+    shader = gl->glCreateShader(shader_type); GL_ASSERT
 
 	if(!shader)
 	{
@@ -238,11 +240,11 @@ GLuint glProgram::loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filena
 	fclose(file);
 
 	text_ptr = text.data();
-	gl->glShaderSource(shader, 1, &text_ptr, &length);
-	gl->glCompileShader(shader);
+    gl->glShaderSource(shader, 1, &text_ptr, &length); GL_ASSERT
+    gl->glCompileShader(shader); GL_ASSERT
 
 	GLint success = 0;
-	gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success); GL_ASSERT
 
 	if(success != GL_FALSE)
 	{
@@ -250,11 +252,11 @@ GLuint glProgram::loadShader(QOpenGLFunctions_3_2_Core * gl, const char * filena
 	}
 
 	length = 0;
-	gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+    gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length); GL_ASSERT
 	text.resize(length, 0);
-	gl->glGetShaderInfoLog(shader, length, &length, text.data());
+    gl->glGetShaderInfoLog(shader, length, &length, text.data()); GL_ASSERT
 
 	fprintf(stderr, "%s", text.data());
-	gl->glDeleteShader(shader);
+    gl->glDeleteShader(shader); GL_ASSERT
 	return 0;
 }

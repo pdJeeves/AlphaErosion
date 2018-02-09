@@ -31,7 +31,8 @@ SOURCES += \
     src/viewwidget.cpp \
     src/glprogram.cpp \
     src/glglobals.cpp \
-    src/shader.cpp
+    src/shader.cpp \
+    src/checkershader.cpp
 
 
 HEADERS += \
@@ -39,7 +40,8 @@ HEADERS += \
     src/viewwidget.h \
 	src/glprogram.h \
     src/glglobals.h \
-    src/shader.h
+    src/shader.h \
+    src/checkershader.h
 
 FORMS += \
         src/mainwindow.ui

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "shader.h"
+#include "checkershader.h"
 #include "viewwidget.h"
 #include "glglobals.h"
 #include <QMessageBox>
@@ -18,6 +19,7 @@ QOpenGLWidget(m_parent),
 	m_texture[1] = 0L;
 	AddRefGL();
 	g_shader.AddRef();
+    g_checker.AddRef();
 }
 
 ViewWidget::~ViewWidget()
@@ -33,6 +35,7 @@ ViewWidget::~ViewWidget()
 
 	ReleaseGL(this);
 	g_shader.Release(this);
+    g_checker.Release(this);
 }
 
 void ViewWidget::setTexture(int id, QImage & image)
@@ -88,21 +91,23 @@ void ViewWidget::clearTexture(int id)
 void 	ViewWidget::initializeGL()
 {
     QOpenGLFunctions_3_2_Core::initializeOpenGLFunctions(); GL_ASSERT
+    glClearColor(0, 0, 0, 1); GL_ASSERT
+    glDisable(GL_DEPTH_TEST); GL_ASSERT
+    glEnable(GL_BLEND); GL_ASSERT
+    glBlendEquation(GL_FUNC_ADD); GL_ASSERT
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); GL_ASSERT
 }
 
 void ViewWidget::paintGL()
 {
-    glViewport(0, 0, width(), height()); GL_ASSERT
-    glClearColor(0, 0, 0, 1); GL_ASSERT
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_ASSERT
 
-	g_shader.bindShader(this);
-	bindVAO(this);
+    bindVAO(this);
+    g_checker.bindShader(this);
+    glUniform2f(g_checker.u_windowSize, width(), height()); GL_ASSERT
+    glDrawArrays(GL_TRIANGLES, 0, 6); GL_ASSERT
 
-    glDisable(GL_DEPTH_TEST); GL_ASSERT
-    glBlendEquation(GL_FUNC_ADD); GL_ASSERT
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); GL_ASSERT
-
+    g_shader.bindShader(this);
     glActiveTexture(GL_TEXTURE0); GL_ASSERT
     glBindTexture(GL_TEXTURE_2D, m_texture[0]); GL_ASSERT
     glActiveTexture(GL_TEXTURE1); GL_ASSERT
@@ -119,14 +124,14 @@ void ViewWidget::paintGL()
     glUniform1f(g_shader.u_time,               w->progress() * w->durationMs() / 1000.0); GL_ASSERT
 
     glDrawArrays(GL_TRIANGLES, 0, 6); GL_ASSERT
-
-    glFlush(); GL_ASSERT
 }
 
 void 	ViewWidget::resizeGL(int w, int h)
 {
 	QOpenGLWidget::resizeGL(w, h);
+    glViewport(0, 0, width(), height());
 }
+
 
 #include <GL/glu.h>
 

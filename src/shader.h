@@ -11,10 +11,13 @@ public:
 	GLint u_gradient;
 	GLint u_imageSize;
 	GLint u_windowSize;
+	GLint u_mousePos;
 	GLint u_fadeInDuration;
 	GLint u_fadeOutStart;
 	GLint u_fadeOutDuration;
 	GLint u_transitionDuration;
+	GLint u_var;
+	GLint u_timeOfDayMs;
 	GLint u_time;
 
     void construct(ViewWidget *gl);

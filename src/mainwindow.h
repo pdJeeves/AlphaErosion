@@ -45,6 +45,8 @@ public:
 	bool synchronize() const;
 	bool repeat() const;
 
+	int timeOfDayMs() const;
+
 private:
 	Ui::MainWindow *ui;
 };

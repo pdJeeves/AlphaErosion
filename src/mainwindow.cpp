@@ -7,6 +7,8 @@
 #include <QImageWriter>
 #include <QTimer>
 
+#include <ctime>
+
 static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode);
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -31,7 +33,7 @@ ui(new Ui::MainWindow)
 	connect(ui->reloadUV, &QPushButton::clicked, [this]() { reloadTexture(1); });
 	connect(ui->clearUV, &QPushButton::clicked, [this]() { clearTexture(1); });
 
-	connect(ui->progress, &QSlider::valueChanged, [this]() { ui->openGLWidget->repaint(); });
+	connect(ui->synchronize, &QCheckBox::stateChanged, [this](int checked) { ui->progress->setEnabled(checked == Qt::Unchecked); });
 }
 
 MainWindow::~MainWindow()
@@ -94,11 +96,15 @@ void MainWindow::updateUI()
 	ui->clearUV-> setEnabled(haveUV);
 
 	ui->play->setEnabled(haveErosion);
-	ui->progress->setEnabled(haveErosion);
+	ui->progress->setEnabled(haveErosion && ui->synchronize->checkState() == Qt::Unchecked);
 
 	if(!haveErosion)
 	{
 		m_frameTimer->stop();
+	}
+	else
+	{
+		m_frameTimer->start();
 	}
 }
 
@@ -106,7 +112,6 @@ void MainWindow::play()
 {
 	if(!ui->play->isChecked())
 	{
-		m_frameTimer->stop();
 		return;
 	}
 
@@ -126,42 +131,53 @@ void MainWindow::play()
 	}
 
 	m_startTime = ms - std::chrono::milliseconds(progress);
-	m_frameTimer->start();
 }
 
 void MainWindow::update()
 {
 //get current time
-	std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
-	int duration = durationMs();
-	int progress;
-
-	if(synchronize())
+	if(ui->play->isChecked())
 	{
-		progress = ms.count() % (duration + 1);
-	}
-	else
-	{
-		progress = (ms - m_startTime).count();
-	}
+		std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
+		int duration = durationMs();
+		int progress;
 
-	double value = progress * ui->progress->maximum() / (double) (duration + .01) + .5;
-
-	if(value > ui->progress->value() && value < ui->progress->maximum())
-	{
-		ui->progress->setValue(value);
-	}
-	else
-	{
-		ui->progress->setValue(0);
-		m_startTime = ms;
-
-		if(!repeat())
+		if(synchronize())
 		{
-			m_frameTimer->stop();
-			ui->play->setChecked(false);
+			progress = ms.count() % (duration + 1);
+		}
+		else
+		{
+			progress = (ms - m_startTime).count();
+		}
+
+		double value = progress * ui->progress->maximum() / (double) (duration + .01) + .5;
+
+		if(value > ui->progress->value() && value < ui->progress->maximum())
+		{
+			ui->progress->setValue(value);
+		}
+		else
+		{
+			ui->progress->setValue(0);
+			m_startTime = ms;
+
+			if(!repeat())
+			{
+				ui->play->setChecked(false);
+			}
 		}
 	}
+
+	ui->openGLWidget->repaint();
+}
+
+int MainWindow::timeOfDayMs() const
+{
+	auto now = std::chrono::high_resolution_clock::now();
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) -
+			  std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch());
+	return ms.count();
 }
 
 double MainWindow::fadeInDuration() const
@@ -183,6 +199,7 @@ double  MainWindow::transitionDuration() const
 {
 	return ui->transitionDuration->value();
 }
+
 
 double  MainWindow::progress() const
 {

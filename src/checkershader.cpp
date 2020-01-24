@@ -46,11 +46,11 @@ const char * kFrag()
 
     void main()
     {
-        int x = int(f_uv.x / 10);
-        int y = int(f_uv.y / 10);
+        int x = int(f_uv.x / 12);
+        int y = int(f_uv.y / 12);
         int i = (x ^ y) & 0x01;
 
-        float c = (150 + 40 * i)/255.f;
+        float c = (140 + 80 * i)/255.f;
 
         fragColor = vec4(c, c, c, 1);
     });

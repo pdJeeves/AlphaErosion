@@ -5,6 +5,7 @@
 #include "glglobals.h"
 #include <QMessageBox>
 #include <QGuiApplication>
+#include <QCursor>
 #include <QImage>
 
 #define GL_ASSERT glAssert();
@@ -100,6 +101,8 @@ void 	ViewWidget::initializeGL()
 
 void ViewWidget::paintGL()
 {
+	QPoint mouse = mapFromGlobal(QCursor::pos());
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_ASSERT
 
     bindVAO(this);
@@ -117,10 +120,12 @@ void ViewWidget::paintGL()
     glUniform1i(g_shader.u_gradient, 1); GL_ASSERT
     glUniform2f(g_shader.u_imageSize, m_width, m_height); GL_ASSERT
     glUniform2f(g_shader.u_windowSize, width(), height()); GL_ASSERT
+	glUniform2f(g_shader.u_mousePos,   mouse.x(), mouse.y()); GL_ASSERT
     glUniform1f(g_shader.u_fadeInDuration,     w->fadeInDuration()); GL_ASSERT
     glUniform1f(g_shader.u_fadeOutStart,       w->fadeOutStart()); GL_ASSERT
     glUniform1f(g_shader.u_fadeOutDuration,    w->fadeOutDuration()); GL_ASSERT
     glUniform1f(g_shader.u_transitionDuration, w->transitionDuration()); GL_ASSERT
+	glUniform1f(g_shader.u_timeOfDayMs,        w->timeOfDayMs()); GL_ASSERT
     glUniform1f(g_shader.u_time,               w->progress() * w->durationMs() / 1000.0); GL_ASSERT
 
     glDrawArrays(GL_TRIANGLES, 0, 6); GL_ASSERT

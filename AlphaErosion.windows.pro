@@ -15,9 +15,12 @@ TEMPLATE = app
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS GLEW_STATIC
-
+DEFINES += QT_DEPRECATED_WARNINGS
 LIBS += -lglu32
+INCLUDEPATH += src
+
+QMAKE_CXXFLAGS += -d2FH4-
+QMAKE_LFLAGS +=  -d2:-FH4-
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.

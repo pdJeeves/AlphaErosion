@@ -3,6 +3,8 @@
 #include <exception>
 #include <vector>
 #include <cassert>
+#include <QMessageBox>
+#include <QGuiApplication>
 
 
 #define GL_ASSERT gl->glAssert();
@@ -276,8 +278,9 @@ GLuint glProgram::loadShader(ViewWidget * gl, const char * filename, GLuint shad
     gl->glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length); GL_ASSERT
 	text.resize(length, 0);
     gl->glGetShaderInfoLog(shader, length, &length, text.data()); GL_ASSERT
+	gl->glDeleteShader(shader); GL_ASSERT
 
-	fprintf(stderr, "%s", text.data());
-    gl->glDeleteShader(shader); GL_ASSERT
+	QMessageBox::information(gl, QGuiApplication::applicationDisplayName(), &text[0]);
+
 	return 0;
 }

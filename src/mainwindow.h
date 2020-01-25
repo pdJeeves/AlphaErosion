@@ -14,22 +14,6 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
-	QTimer  *                 m_frameTimer;
-	std::chrono::milliseconds m_startTime;
-
-	QFileInfo				  m_texturePath[2];
-
-
-	bool loadFile(QImage & newImage, const QString &fileName);
-
-	void loadTexture(int, const QString &);
-	void reloadTexture(int);
-	void clearTexture(int);
-	void updateUI();
-
-	void update();
-	void play();
-
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
@@ -48,6 +32,23 @@ public:
 	int timeOfDayMs() const;
 
 private:
+	QTimer  *                 m_frameTimer;
+	std::chrono::milliseconds m_startTime;
+
+	QFileInfo				  m_texturePath[2];
+
+	bool loadFile(QImage & newImage, const QString &fileName);
+	void saveGIF();
+
+	void loadTexture(int, const QString &);
+	void reloadTexture(int);
+	void clearTexture(int);
+	void updateUI();
+
+	void update();
+	void play();
+
+
 	Ui::MainWindow *ui;
 };
 

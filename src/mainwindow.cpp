@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
+#include <QProgressBar>
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QImageReader>
@@ -24,12 +25,13 @@ ui(new Ui::MainWindow)
 
 	connect(m_frameTimer, &QTimer::timeout, this, &MainWindow::update);
 	connect(ui->play, &QPushButton::clicked, this,  &MainWindow::play);
+	connect(ui->ExportGif, &QPushButton::clicked, this,  &MainWindow::saveGIF);
 
 	connect(ui->loadErosion, &QPushButton::clicked, [this]() { loadTexture(0, tr("Load Erosion")); });
 	connect(ui->reloadErosion, &QPushButton::clicked, [this]() { reloadTexture(0); });
 	connect(ui->clearErosion, &QPushButton::clicked, [this]() { clearTexture(0); });
 
-	connect(ui->loadUV, &QPushButton::clicked, [this]() { loadTexture(1, tr("Load UV")); });
+	connect(ui->loadUV, &QPushButton::clicked, [this]() { loadTexture(1, tr("Load Gradient")); });
 	connect(ui->reloadUV, &QPushButton::clicked, [this]() { reloadTexture(1); });
 	connect(ui->clearUV, &QPushButton::clicked, [this]() { clearTexture(1); });
 
@@ -45,6 +47,7 @@ void MainWindow::loadTexture(int id, const QString & title)
 {
 	QFileDialog dialog(this, title);
 	dialog.setFileMode(QFileDialog::ExistingFile);
+	dialog.setAcceptMode(QFileDialog::AcceptOpen);
     initializeImageFileDialog(dialog, QFileDialog::AcceptOpen);
 
 	QImage      image;
@@ -96,6 +99,7 @@ void MainWindow::updateUI()
 	ui->clearUV-> setEnabled(haveUV);
 
 	ui->play->setEnabled(haveErosion);
+	ui->ExportGif->setEnabled(haveErosion);
 	ui->progress->setEnabled(haveErosion && ui->synchronize->checkState() == Qt::Unchecked);
 
 	if(!haveErosion)
@@ -218,15 +222,14 @@ bool    MainWindow::repeat() const
 
 static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
-	dialog.setDirectory(QDir::currentPath());
-	/*
     static bool firstDialog = true;
 
     if (firstDialog) {
         firstDialog = false;
         const QStringList picturesLocations = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
-        dialog.setDirectory(picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last());
-    }*/
+  //      dialog.setDirectory(picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last());
+		dialog.setDirectory(QDir::currentPath());
+    }
 
     QStringList mimeTypeFilters;
     const QByteArrayList supportedMimeTypes = acceptMode == QFileDialog::AcceptOpen
@@ -236,6 +239,7 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
     mimeTypeFilters.sort();
     dialog.setMimeTypeFilters(mimeTypeFilters);
     dialog.selectMimeTypeFilter("image/png");
+
     if (acceptMode == QFileDialog::AcceptSave)
         dialog.setDefaultSuffix("png");
 }
@@ -245,11 +249,57 @@ bool  MainWindow::loadFile(QImage & newImage, const QString &fileName)
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     newImage = reader.read();
-    if (!newImage.isNull()) return true;
+
+    if (!newImage.isNull())
+	{
+		if(newImage.width() < 2048 && newImage.height() < 2048)
+			return true;
+
+		QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+								tr("Cannot load %1:\nImage too large. max size: 2048x2048")
+								.arg(QDir::toNativeSeparators(fileName), reader.errorString()));
+
+		return false;
+	}
 
 	QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-							 tr("Cannot load %1: %2")
+							 tr("Cannot load %1:\n%2")
 							 .arg(QDir::toNativeSeparators(fileName), reader.errorString()));
 	return false;
 }
 
+void MainWindow::saveGIF()
+{
+	if(!m_texturePath[0].isFile())
+		return;
+
+	QString filename;
+	int frame_delay = 5;
+	int height      = -1;
+
+	{
+
+		QFileDialog dialog(this, "Export GIF");
+		dialog.setFileMode(QFileDialog::AnyFile);
+		dialog.setAcceptMode(QFileDialog::AcceptSave);
+		dialog.setMimeTypeFilters({"Animated Gif (*.gif)"});
+		dialog.selectMimeTypeFilter("image/gif");
+		dialog.setDefaultSuffix("gif");
+
+		if(dialog.exec() != QDialog::Accepted)
+			return;
+
+		filename = dialog.selectedFiles().first();
+
+		if(filename.isNull())
+			return;
+	}
+
+	ui->openGLWidget->ExportGif(filename.toStdString(),
+		fadeInDuration(),
+		fadeOutStart(),
+		fadeOutDuration(),
+		transitionDuration(),
+		frame_delay,
+		height);
+}

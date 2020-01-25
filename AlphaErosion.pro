@@ -36,6 +36,7 @@ SOURCES += \
 
 
 HEADERS += \
+	src/gif.h \
         src/mainwindow.h \
     src/viewwidget.h \
 	src/glprogram.h \
@@ -44,4 +45,5 @@ HEADERS += \
     src/checkershader.h
 
 FORMS += \
+        src/export_gif.ui \
         src/mainwindow.ui

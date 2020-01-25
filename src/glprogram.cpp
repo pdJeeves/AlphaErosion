@@ -179,11 +179,6 @@ void glProgram::uniform(ViewWidget * gl, GLint & index, const char * name)
 
 bool glProgram::bindShader(ViewWidget * gl)
 {
-static glProgram * current_program = 0L;
-	if(current_program == this)
-		return false;
-	current_program = this;
-
 	if(!m_program)
 	{
         m_program = gl->glCreateProgram(); GL_ASSERT

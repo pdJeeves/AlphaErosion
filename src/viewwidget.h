@@ -26,6 +26,7 @@ public:
 	void 	resizeGL(int w, int h);
 
     void    displayOpenGlError(const char * file, const char * function, int line);
+	void  ExportGif(std::string const& filename, float fade_in, float fade_out_start, float fade_out, float transition, int frame_delay = 5, int height = -1);
 };
 
 #define glAssert() displayOpenGlError(__FILE__, __FUNCTION__, __LINE__);
